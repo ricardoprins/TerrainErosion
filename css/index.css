@@ -39,6 +39,11 @@ canvas {
   z-index: 3;
 }
 
+#radius-wrapper {
+  margin-top: 20px;
+  line-height: 0;
+}
+
 #iterations-wrapper {
   margin-top: 20px;
   line-height: 0;
