@@ -5,19 +5,19 @@ var QUAD_VERTEX_SOURCE = [
     
     'attribute vec3 a_position;',
     'attribute vec3 a_texCoord;',
-	
-	'varying vec3 v_position;',
+    
+    'varying vec3 v_position;',
 
     'uniform mat4 u_projection;',
     'uniform mat4 u_view;',
-	
-	'uniform float u_waterLevel;',
-	'uniform float u_verticalScale;',
+    
+    'uniform float u_waterLevel;',
+    'uniform float u_verticalScale;',
 
     'void main (void) {',
         'v_position = a_position;',
-		'v_position.y -= 20.0;',
-		'v_position.y = max(u_waterLevel, v_position.y);',
+        'v_position.y -= 20.0;',
+        'v_position.y = max(u_waterLevel, v_position.y);',
         'gl_Position = u_projection * u_view * vec4(v_position, 1.0);',
     '}',
 ].join('\n');
@@ -25,29 +25,29 @@ var QUAD_VERTEX_SOURCE = [
 var QUAD_FRAGMENT_SOURCE = [
     'precision highp float;',
 
-	'varying vec3 v_position;',
-	
+    'varying vec3 v_position;',
+    
     'uniform vec3 u_color;',
-	
-	'uniform float u_waterLevel;',
-	'uniform float u_snowLevel;',
-	
-	'const vec3 waterColor = vec3(0.00, 0.00, 0.33);',
-	'const vec3 snowColor = vec3(0.90, 0.90, 0.90);',
-	'const vec3 groundColor = vec3(0.66, 0.33, 0.00);',
-	
-	'vec3 getColor(float elevation) {',
-	    'if (elevation<=u_waterLevel) {',
-		    'return waterColor;',
-		'}',
-	    'if (elevation>u_snowLevel) {',
-		    'return snowColor;',
-		'}',
-	    'return groundColor;',
-	'}',
+    
+    'uniform float u_waterLevel;',
+    'uniform float u_snowLevel;',
+    
+    'const vec3 waterColor = vec3(0.00, 0.00, 0.33);',
+    'const vec3 snowColor = vec3(0.90, 0.90, 0.90);',
+    'const vec3 groundColor = vec3(0.66, 0.33, 0.00);',
+    
+    'vec3 getColor(float elevation) {',
+        'if (elevation<=u_waterLevel) {',
+            'return waterColor;',
+        '}',
+        'if (elevation>u_snowLevel) {',
+            'return snowColor;',
+        '}',
+        'return groundColor;',
+    '}',
 
     'void main (void) {',
-	    'vec3 color = getColor(v_position.y);',
+        'vec3 color = getColor(v_position.y);',
         'gl_FragColor = vec4(color * u_color, 1.0);',
     '}',
 ].join('\n');
@@ -56,10 +56,10 @@ var Simulator = function(canvas, width, height) {
     var canvas = canvas;
     canvas.width = width;
     canvas.height = height;
-	
-	var waterLevel = WATER_LEVEL,
-	    snowLevel = SNOW_LEVEL,
-		verticalScale = VERTICAL_SCALE;
+    
+    var waterLevel = WATER_LEVEL,
+        snowLevel = SNOW_LEVEL,
+        verticalScale = VERTICAL_SCALE;
         
     var iterations = INITIAL_ITERATIONS;
     
@@ -74,8 +74,9 @@ var Simulator = function(canvas, width, height) {
         buildShader(gl, gl.FRAGMENT_SHADER, QUAD_FRAGMENT_SOURCE),
         {"a_position" : 0});
 
-	var heightmap = new VossGenerator(GEOMETRY_RESOLUTION);
-	heightmap.generate(0, 0);
+    var heightmap = new ErodingHeightmap(GEOMETRY_RESOLUTION);
+    var vossGenerator = new VossGenerator(heightmap);
+    vossGenerator.generate(0, 0);
 
     var quadColor = new Float32Array([0.0, 0.0, 0.0]);
     var outlineColor = new Float32Array([1.0, 1.0, 1.0]);
@@ -192,7 +193,7 @@ var Simulator = function(canvas, width, height) {
 
         gl.uniformMatrix4fv(quadProgram.uniformLocations['u_projection'], false, projectionMatrix);
         gl.uniformMatrix4fv(quadProgram.uniformLocations['u_view'], false, viewMatrix);
-		
+        
         gl.uniform1f(quadProgram.uniformLocations['u_waterLevel'], waterLevel);
         gl.uniform1f(quadProgram.uniformLocations['u_snowLevel'], snowLevel);
         gl.uniform1f(quadProgram.uniformLocations['u_verticalScale'], verticalScale);
@@ -202,7 +203,7 @@ var Simulator = function(canvas, width, height) {
         gl.enable(gl.POLYGON_OFFSET_FILL);
 
         gl.uniform3fv(quadProgram.uniformLocations['u_color'], quadColor);
-		
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, mapMeshBuffer);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 4 * SIZE_OF_FLOAT, 0);
 

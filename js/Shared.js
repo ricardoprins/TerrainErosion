@@ -6,7 +6,7 @@
 
 var WATER_LEVEL = -10.0,
     SNOW_LEVEL = 0.0,
-	VERTICAL_SCALE = 150.0;
+    VERTICAL_SCALE = 150.0;
     
 var INITIAL_ITERATIONS = 100,
     MIN_ITERATIONS = 50,
@@ -27,7 +27,7 @@ var X_INDEX = 0,
 
 var H_INDEX = 0,
     GX_INDEX = 1,
-	GY_INDEX = 2;
+    GY_INDEX = 2;
 
 var CLEAR_COLOR = [0.0, 0.0, 0.0, 1.0],
     GEOMETRY_RESOLUTION = 129,

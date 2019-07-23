@@ -1,20 +1,24 @@
 'use strict'
 
-var VossGenerator = function(size) {
-    this.size = size;
-    this.data = new Int32Array(size * size);
-    this.map = new Float32Array(size * size);
-    this.flags = new Int8Array(size * size);
-    this.seek = 0.0;
+var Heightmap = function(size) {
+    this.mapSize = size;
+    this.map = new Float32Array(this.mapSize * this.mapSize);
+    
+    this.getMapSize = function() {
+        return this.mapSize;
+    };
+    
+    this.setHeight = function(posX, posY, height) {
+        this.map[posY * this.mapSize + posX] = height;
+    };
+    
+    this.getHeight = function(posX, posY) {
+        return this.map[posY * this.mapSize + posX];
+    };
+};
 
-    this.heightSeek = 2.0;
-    this.slopeSeek = 2000.0;
-
-    this.setData = function(x, y, k) { this.data[y * this.size + x] = k; };
-    this.getData = function(x, y) { return this.data[y * this.size + x]; };
-
-    this.setFlag = function(x, y, f) { this.flags[y * this.size + x] = f; };
-    this.getFlag = function(x, y) { return this.flags[y * this.size + x]; };
+var ErodingHeightmap = function(size) {
+    Heightmap.call(this, size);
     
     // Eroding Terrain
     var erosionRadius = INITIAL_RADIUS,
@@ -42,16 +46,6 @@ var VossGenerator = function(size) {
     
     this.setErosionRadius = function(newRadius) {
         erosionRadius = newRadius;
-    };
-    
-    this.getHeight = function(posX, posY) {
-        return this.map[posY * this.size + posX];
-    };
-    
-    this.convertDataToHeight = function() {
-        for (var index = 0; index < this.size * this.size; index++) {
-            this.map[index] = this.data[index] / 150.0 + 20.0;
-        }
     };
     
     this.getHeightAndGradient = function(heightAndGradient, posX, posY) {
@@ -93,7 +87,7 @@ var VossGenerator = function(size) {
     };
     
     this.erode = function(numIterations, resetSeed) {
-        var mapSize = this.size;
+        var mapSize = this.mapSize;
         var heightAndGradient = new Float32Array(4),
             newHeightAndGradient = new Float32Array(4);
         
@@ -251,31 +245,59 @@ var VossGenerator = function(size) {
         }
     };
 
+};
+
+var VossGenerator = function(heightmap) {
+    var map = heightmap;
+    var mapSize = map.getMapSize();
+    var data = new Int32Array(mapSize * mapSize);
+    var flags = new Int8Array(mapSize * mapSize);
+    var seek = 0.0;
+
+    var heightSeek = 2.0;
+    var slopeSeek = 2000.0;
+
+    this.setData = function(x, y, k) { data[y * mapSize + x] = k; };
+    this.getData = function(x, y) { return data[y * mapSize + x]; };
+
+    this.setFlag = function(x, y, f) { flags[y * mapSize + x] = f; };
+    this.getFlag = function(x, y) { return flags[y * mapSize + x]; };
+
+    this.convertDataToHeight = function() {
+        for (var yIndex = 0; yIndex < mapSize; yIndex++) {
+            var index = yIndex * mapSize;
+            for (var xIndex = 0; xIndex < mapSize; xIndex++) {
+                var height = data[index + xIndex] / 150.0 + 20.0;
+                map.setHeight(xIndex, yIndex, height);
+            }
+        }
+    };
+    
     // Voss Generator
     this.generate = function(x, y) {
         // Clear map
-        for (var i=0; i<this.size*this.size; i++) {
-            this.data[i] = 0;
-            this.flags[i] = true;
+        for (var i=0; i<mapSize*mapSize; i++) {
+            data[i] = 0;
+            flags[i] = true;
         }
 
         // Set corner values
-        this.data[0] = 0;
-        this.data[this.size - 1] = 0;
-        this.data[this.size * (this.size - 1) - 1] = 0;
-        this.data[this.size * this.size - 1] = 0;
+        data[0] = 0;
+        data[mapSize - 1] = 0;
+        data[mapSize * (mapSize - 1) - 1] = 0;
+        data[mapSize * mapSize - 1] = 0;
 
-        this.seek = x * 1e-3 + y * 1e-6;
-        this.sideVoss(0, 0, this.size - 1, 0, 1.0);
-        this.seek = y * 1e-3 + x * 1e-6 + 0.1;
-        this.sideVoss(0, 0, 0, this.size - 1, 1.0);
+        seek = x * 1e-3 + y * 1e-6;
+        this.sideVoss(0, 0, mapSize - 1, 0, 1.0);
+        seek = y * 1e-3 + x * 1e-6 + 0.1;
+        this.sideVoss(0, 0, 0, mapSize - 1, 1.0);
 
-        this.seek = (x + 1) * 1e-3 + y * 1e-6;
-        this.sideVoss(0, this.size - 1, this.size - 1, this.size - 1, 1.0);
-        this.seek = (y + 1) * 1e-3 + x * 1e-6 + 0.1;
-        this.sideVoss(this.size - 1, 0, this.size - 1, this.size - 1, 1.0);
+        seek = (x + 1) * 1e-3 + y * 1e-6;
+        this.sideVoss(0, mapSize - 1, mapSize - 1, mapSize - 1, 1.0);
+        seek = (y + 1) * 1e-3 + x * 1e-6 + 0.1;
+        this.sideVoss(mapSize - 1, 0, mapSize - 1, mapSize - 1, 1.0);
 
-        this.iterationVoss(0, 0, this.size - 1, this.size - 1, 1.0);
+        this.iterationVoss(0, 0, mapSize - 1, mapSize - 1, 1.0);
         
         this.convertDataToHeight();
     };
@@ -289,11 +311,11 @@ var VossGenerator = function(size) {
             var y3 = Math.floor(y1 + (y2 - y1) / 2);
 
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x1, y3, b);
             this.setFlag(x1, y3, false);
 
-            D = Math.exp(2.0 * this.heightSeek * Math.log(0.5)) * D;
+            D = Math.exp(2.0 * heightSeek * Math.log(0.5)) * D;
             this.sideVoss(x1, y1, x2, y3, D);
             this.sideVoss(x1, y3, x2, y2, D);
         }
@@ -305,11 +327,11 @@ var VossGenerator = function(size) {
             var x3 = Math.floor(x1 + (x2 - x1) / 2);
 
             var b = Math.floor(((this.getData(x1, y1) + this.getData(x2, y1)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D))));
+                + Math.round(slopeSeek * this.nrand(0.0, D))));
             this.setData(x3, y1, b);
             this.setFlag(x3, y1, false);
 
-            D = Math.exp(2.0 * this.heightSeek * Math.log(0.5)) * D;
+            D = Math.exp(2.0 * heightSeek * Math.log(0.5)) * D;
             this.sideVoss(x1, y1, x3, y2, D);
             this.sideVoss(x3, y1, x2, y2, D);
         }
@@ -327,40 +349,40 @@ var VossGenerator = function(size) {
         if (this.getFlag(x3, y3)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)
                 + this.getData(x2, y1) + this.getData(x2, y2)) / 4
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x3, y3, b);
             this.setFlag(x3, y3, false);
         }
 
         if (this.getFlag(x1, y3)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x1, y3, b);
             this.setFlag(x1, y3, false);
         }
 
         if (this.getFlag(x3, y1)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x2, y1)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x3, y1, b);
             this.setFlag(x3, y1, false);
         }
 
         if (this.getFlag(x2, y3)) {
             var b = Math.floor((this.getData(x2, y1) + this.getData(x2, y2)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x2, y3, b);
             this.setFlag(x2, y3, false);
         }
 
         if (this.getFlag(x3, y2)) {
             var b = Math.floor((this.getData(x1, y2) + this.getData(x2, y2)) / 2
-                + Math.round(this.slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * this.nrand(0.0, D)));
             this.setData(x3, y2, b);
             this.setFlag(x3, y2, false);
         }
 
-        D = Math.exp(1.0 * this.heightSeek * Math.log(0.5)) * D;
+        D = Math.exp(1.0 * heightSeek * Math.log(0.5)) * D;
 
         this.iterationVoss(x1, y1, x3, y3, D);
         this.iterationVoss(x3, y1, x2, y3, D);
@@ -369,8 +391,8 @@ var VossGenerator = function(size) {
     };
 
     this.drand = function() {
-        this.seek = frac(11.0 * this.seek + Math.PI);
-        return this.seek;
+        seek = frac(11.0 * seek + Math.PI);
+        return seek;
     };
 
     this.nrand = function(a, D) {
