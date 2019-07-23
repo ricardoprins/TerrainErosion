@@ -1,0 +1,87 @@
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+#ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+#hud {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  text-align: right;
+
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  z-index: 3;
+}
+
+#iterations-wrapper {
+  margin-top: 20px;
+  line-height: 0;
+}
+
+.slider {
+  width: 200px;
+  height: 25px;
+  background-color: #eeeeee;
+  display: inline-block;
+  position: relative;
+  cursor: ew-resize;
+}
+
+.label {
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 900;
+  color: #eeeeee;
+  font-size: 18px;
+
+  margin-right: 8px;
+
+  vertical-align: top;
+
+  pointer-events: none;
+
+  line-height: 25px;
+}
+
+#footer {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  color: #eeeeee;
+  font-size: 18px;
+  
+  z-index: 3;
+}
+
+#footer a {
+  text-decoration: underline;
+  color: #eeeeee;
+}

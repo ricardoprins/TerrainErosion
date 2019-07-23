@@ -1,0 +1,40 @@
+<!doctype html>
+
+<html>
+    <head>
+        <title>Terrain Erosion Demo</title>
+
+        <meta name="description" content="Demo of hydraulic erosion on a procedural terrain using JavaScript & WebGL" />
+
+        <meta charset="utf-8" />
+
+        <link type="text/css" href="css/index.css" rel="stylesheet" />
+    </head>
+
+    <body>
+
+        <div id="hud">
+            <div id="radius-wrapper">
+                <span class="label">RADIUS</span><div id="radius-slider" class="slider"></div>
+            </div>
+            <div id="iterations-wrapper">
+                <span class="label">ITERATIONS</span><div id="iterations-slider" class="slider"></div>
+            </div>
+        </div>
+
+        <div id="overlay"></div>
+        <div id="ui"></div>
+        <canvas id="simulator"></canvas>
+
+        <div id="footer"><a href="https://postrediori.github.io">Rasim Labibov</a> | <a href="https://github.com/Postrediori/WavesOnSurfaces">Code</a></div>
+
+        <script type="text/javascript" src="js/Shared.js"></script>
+        <script type="text/javascript" src="js/UI.js"></script>
+        <script type="text/javascript" src="js/Camera.js"></script>
+        <script type="text/javascript" src="js/VossGenerator.js"></script>
+        <script type="text/javascript" src="js/Simulation.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+
+        <noscript>Enable JavaScript!</noscript>
+    </body>
+</html>
