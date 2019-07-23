@@ -1,5 +1,28 @@
 'use strict'
 
+var PrngGenerator = function(seed) {
+    var seed = seed;
+    
+    this.setSeed = function(newSeed) {
+        seed = newSeed;
+    };
+    
+    this.drand = function() {
+        seed = frac(11.0 * seed + Math.PI);
+        return seed;
+    };
+    
+    this.random = function(a, D) {
+        var x = 0.0;
+
+        for (var i=0; i<10; i++) {
+            x += this.drand();
+        }
+        x = (x - 5.0) * Math.sqrt(D) / (Math.sqrt(10.0 / 12.0)) + a;
+        return x;
+    };
+};
+
 var Heightmap = function(size) {
     this.mapSize = size;
     this.map = new Float32Array(this.mapSize * this.mapSize);
@@ -252,7 +275,7 @@ var VossGenerator = function(heightmap) {
     var mapSize = map.getMapSize();
     var data = new Int32Array(mapSize * mapSize);
     var flags = new Int8Array(mapSize * mapSize);
-    var seek = 0.0;
+    var prng = new PrngGenerator(0.0);
 
     var heightSeek = 2.0;
     var slopeSeek = 2000.0;
@@ -287,14 +310,14 @@ var VossGenerator = function(heightmap) {
         data[mapSize * (mapSize - 1) - 1] = 0;
         data[mapSize * mapSize - 1] = 0;
 
-        seek = x * 1e-3 + y * 1e-6;
+        prng.setSeed(x * 1e-3 + y * 1e-6);
         this.sideVoss(0, 0, mapSize - 1, 0, 1.0);
-        seek = y * 1e-3 + x * 1e-6 + 0.1;
+        prng.setSeed(y * 1e-3 + x * 1e-6 + 0.1);
         this.sideVoss(0, 0, 0, mapSize - 1, 1.0);
 
-        seek = (x + 1) * 1e-3 + y * 1e-6;
+        prng.setSeed((x + 1) * 1e-3 + y * 1e-6);
         this.sideVoss(0, mapSize - 1, mapSize - 1, mapSize - 1, 1.0);
-        seek = (y + 1) * 1e-3 + x * 1e-6 + 0.1;
+        prng.setSeed((y + 1) * 1e-3 + x * 1e-6 + 0.1);
         this.sideVoss(mapSize - 1, 0, mapSize - 1, mapSize - 1, 1.0);
 
         this.iterationVoss(0, 0, mapSize - 1, mapSize - 1, 1.0);
@@ -311,7 +334,7 @@ var VossGenerator = function(heightmap) {
             var y3 = Math.floor(y1 + (y2 - y1) / 2);
 
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x1, y3, b);
             this.setFlag(x1, y3, false);
 
@@ -327,7 +350,7 @@ var VossGenerator = function(heightmap) {
             var x3 = Math.floor(x1 + (x2 - x1) / 2);
 
             var b = Math.floor(((this.getData(x1, y1) + this.getData(x2, y1)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D))));
+                + Math.round(slopeSeek * prng.random(0.0, D))));
             this.setData(x3, y1, b);
             this.setFlag(x3, y1, false);
 
@@ -349,35 +372,35 @@ var VossGenerator = function(heightmap) {
         if (this.getFlag(x3, y3)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)
                 + this.getData(x2, y1) + this.getData(x2, y2)) / 4
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x3, y3, b);
             this.setFlag(x3, y3, false);
         }
 
         if (this.getFlag(x1, y3)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x1, y2)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x1, y3, b);
             this.setFlag(x1, y3, false);
         }
 
         if (this.getFlag(x3, y1)) {
             var b = Math.floor((this.getData(x1, y1) + this.getData(x2, y1)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x3, y1, b);
             this.setFlag(x3, y1, false);
         }
 
         if (this.getFlag(x2, y3)) {
             var b = Math.floor((this.getData(x2, y1) + this.getData(x2, y2)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x2, y3, b);
             this.setFlag(x2, y3, false);
         }
 
         if (this.getFlag(x3, y2)) {
             var b = Math.floor((this.getData(x1, y2) + this.getData(x2, y2)) / 2
-                + Math.round(slopeSeek * this.nrand(0.0, D)));
+                + Math.round(slopeSeek * prng.random(0.0, D)));
             this.setData(x3, y2, b);
             this.setFlag(x3, y2, false);
         }
@@ -388,20 +411,5 @@ var VossGenerator = function(heightmap) {
         this.iterationVoss(x3, y1, x2, y3, D);
         this.iterationVoss(x3, y3, x2, y2, D);
         this.iterationVoss(x1, y3, x3, y2, D);
-    };
-
-    this.drand = function() {
-        seek = frac(11.0 * seek + Math.PI);
-        return seek;
-    };
-
-    this.nrand = function(a, D) {
-        var x = 0.0;
-
-        for (var i=0; i<10; i++) {
-            x += this.drand();
-        }
-        x = (x - 5.0) * Math.sqrt(D) / (Math.sqrt(10.0 / 12.0)) + a;
-        return x;
     };
 }
