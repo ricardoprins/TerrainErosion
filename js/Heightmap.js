@@ -68,7 +68,7 @@ var ErodingHeightmap = function(size) {
     var minSedimentCapacity = 0.01;
     
     this.setErosionRadius = function(newRadius) {
-        erosionRadius = newRadius;
+        erosionRadius = Math.trunc(newRadius);
     };
     
     this.getHeightAndGradient = function(heightAndGradient, posX, posY) {
@@ -103,9 +103,12 @@ var ErodingHeightmap = function(size) {
         return heightAndGradient;
     };
     
+    var currentRadius;
+    
     this.initializeErosion = function(mapSize, resetSeed) {
-        if (erosionBrushIndices === null) {
+        if (erosionBrushIndices === null || erosionRadius != currentRadius || resetSeed) {
             this.initializeBrushIndices(mapSize, erosionRadius);
+            currentRadius = erosionRadius;
         }
     };
     

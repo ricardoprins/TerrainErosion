@@ -49,6 +49,19 @@ canvas {
   line-height: 0;
 }
 
+#reset-button {
+  background-color: rgba(0, 200, 60, 1.0);
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  color: #333333;
+  font-size: 18px;
+  display: inline-block;
+  color: white;
+  margin-top: 20px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
 .slider {
   width: 200px;
   height: 25px;

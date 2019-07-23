@@ -74,9 +74,11 @@ var Simulator = function(canvas, width, height) {
         buildShader(gl, gl.FRAGMENT_SHADER, QUAD_FRAGMENT_SOURCE),
         {"a_position" : 0});
 
+    var worldPosX = 0,
+        worldPosY = 0;
     var heightmap = new ErodingHeightmap(GEOMETRY_RESOLUTION);
     var vossGenerator = new VossGenerator(heightmap);
-    vossGenerator.generate(0, 0);
+    vossGenerator.generate(worldPosX, worldPosY);
 
     var quadColor = new Float32Array([0.0, 0.0, 0.0]);
     var outlineColor = new Float32Array([1.0, 1.0, 1.0]);
@@ -181,6 +183,13 @@ var Simulator = function(canvas, width, height) {
 
         return outCoord;
     }
+    
+    this.resetTerrain = function() {
+        worldPosX = Math.trunc(Math.random() * 10000. - 5000.);
+        worldPosY = Math.trunc(Math.random() * 10000. - 5000.);
+        vossGenerator.generate(worldPosX, worldPosY);
+        heightmap.erode(0, true);
+    };
     
     this.render = function(deltaTime, projectionMatrix, viewMatrix) {
         heightmap.erode(iterations, false);

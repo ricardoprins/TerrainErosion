@@ -13,7 +13,12 @@ var main = function () {
     var iterationsSlider = new Slider(document.getElementById('iterations-slider'), MIN_ITERATIONS, MAX_ITERATIONS, INITIAL_ITERATIONS, function (value) {
         simulator.setIterations(value);
     });
-
+    
+    var resetButton = document.getElementById('reset-button');
+    resetButton.onclick = function () {
+        simulator.resetTerrain();
+    }
+    
     radiusSlider.setColor(DEFAULT_UI_COLOR);
     iterationsSlider.setColor(DEFAULT_UI_COLOR);
 
